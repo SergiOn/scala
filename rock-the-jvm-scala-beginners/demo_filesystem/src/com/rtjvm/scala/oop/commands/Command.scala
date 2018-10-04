@@ -10,6 +10,8 @@ trait Command {
 object Command {
   val MKDIR: String = "mkdir"
   val LS: String = "ls"
+  val PWD: String = "pwd"
+  val TOUCH: String = "touch"
 
   def emptyCommand: Command = new Command {
     override def apply(state: State): State = state
@@ -29,6 +31,11 @@ object Command {
       else new Mkdir(tokens(1))
     } else if (LS.equals(tokens(0))) {
       new Ls
+    } else if (PWD.equals(tokens(0))) {
+      new Pwd
+    } else if (TOUCH.equals(tokens(0))) {
+      if (tokens.length < 2) incompleteCommand(MKDIR)
+      else new Touch(tokens(1))
     } else new UnknownCommand
   }
 }
