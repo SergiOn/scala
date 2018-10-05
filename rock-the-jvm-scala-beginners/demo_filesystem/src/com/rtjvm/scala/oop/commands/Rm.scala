@@ -1,5 +1,5 @@
 package com.rtjvm.scala.oop.commands
-import com.rtjvm.scala.oop.files.Directory
+import com.rtjvm.scala.oop.files.{DirEntry, Directory}
 import com.rtjvm.scala.oop.filesystem.State
 
 class Rm(name: String) extends Command {
@@ -43,10 +43,10 @@ class Rm(name: String) extends Command {
       if (path.isEmpty) currentDirectory
       else if (path.tail.isEmpty) currentDirectory.removeEntry(path.head)
       else {
-        val nextDirectory = currentDirectory.findEntry(path.head)
+        val nextDirectory: DirEntry = currentDirectory.findEntry(path.head)
         if (!nextDirectory.isDirectory) currentDirectory
         else {
-          val newNextDirectory = rmHelper(nextDirectory.asDirectory, path.tail)
+          val newNextDirectory: Directory = rmHelper(nextDirectory.asDirectory, path.tail)
           if (newNextDirectory == nextDirectory) currentDirectory
           else currentDirectory.replaceEntry(path.head, newNextDirectory)
         }

@@ -1,6 +1,6 @@
 package com.rtjvm.scala.oop.commands
 
-import com.rtjvm.scala.oop.files.{File, Directory}
+import com.rtjvm.scala.oop.files.{Directory, File}
 import com.rtjvm.scala.oop.filesystem.State
 
 import scala.annotation.tailrec

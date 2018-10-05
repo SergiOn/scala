@@ -43,7 +43,7 @@ class Cd(dir: String) extends Command {
       if (path.isEmpty || path.head.isEmpty) currentDirectory
       else if (path.tail.isEmpty) currentDirectory.findEntry(path.head)
       else {
-        val nextDir = currentDirectory.findEntry(path.head)
+        val nextDir: DirEntry = currentDirectory.findEntry(path.head)
         if (nextDir == null || !nextDir.isDirectory) null
         else findEntryHelper(nextDir.asDirectory, path.tail)
       }
