@@ -2,9 +2,12 @@ package com.rtjvm.scala.oop.commands
 
 import com.rtjvm.scala.oop.filesystem.State
 
-trait Command {
+//trait Command {
+//
+//  def apply(state: State): State
+//}
 
-  def apply(state: State): State
+trait Command extends (State => State) {
 }
 
 object Command {
