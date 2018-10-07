@@ -92,7 +92,7 @@ object Options extends App {
    return null
  */
 
-  val connectionStatus = connection.map(c => c.connect)
+  val connectionStatus: Option[String] = connection.map(c => c.connect)
 
   // if (connectionStatus == null) println(None) else print (Some(connectionStatus.get))
 
