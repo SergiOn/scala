@@ -59,15 +59,15 @@ object PatternMatching extends App {
 
 //  val isEven = x % 2 == 0
 
-  val isEven = x match {
+  val isEven: Boolean = x match {
     case n if n % 2 == 0 => true
     case _ => false
   }
   // WHY?!
 
-  val isEvenCond = if (x % 2 == 0) true else false
+  val isEvenCond: Boolean = if (x % 2 == 0) true else false
 
-  val isEvenNormal = x % 2 == 0
+  val isEvenNormal: Boolean = x % 2 == 0
 
   /*
     Exercise
@@ -92,7 +92,7 @@ object PatternMatching extends App {
     case Number(n) => s"$n"
     case Sum(e1, e2) => show(e1) + " + " + show(e2)
     case Prod(e1, e2) => {
-      def maybeShowParentheses(exp: Expr) = exp match {
+      def maybeShowParentheses(exp: Expr): String = exp match {
         case Prod(_, _) => show(exp)
         case Number(_) => show(exp)
         case _ => "(" + show(exp) + ")"
