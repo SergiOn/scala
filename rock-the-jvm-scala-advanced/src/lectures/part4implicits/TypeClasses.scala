@@ -52,4 +52,22 @@ object TypeClasses extends App {
     def serialize(user: User): String = s"<div>${user.name} </div>"
   }
 
+  // part 2
+  object HTMLSerializer {
+    def serialize[T](value: T)(implicit serializer: HTMLSerializer[T]): String =
+      serializer.serialize(value)
+
+    def apply[T](implicit serializer: HTMLSerializer[T]) = serializer
+  }
+
+  implicit object IntSerializer extends HTMLSerializer[Int] {
+    override def serialize(value: Int): String = s"<div style: color=blue>$value</div>"
+  }
+
+  println(HTMLSerializer.serialize(42))
+  println(HTMLSerializer.serialize(john))
+
+  // access to the entire type class  interface
+  println(HTMLSerializer[User].serialize(john))
+
 }
