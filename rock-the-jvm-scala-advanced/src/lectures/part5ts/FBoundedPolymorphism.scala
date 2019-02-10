@@ -150,4 +150,24 @@ object FBoundedPolymorphism extends App {
 //  val cat = new Cat
 //  cat.breed
 
+/*
+  // my solution
+
+  trait Animal {
+    def breed: List[this.type]
+  }
+
+  class Cat extends Animal {
+    override def breed: List[Cat] = ??? // List[Cat] !!
+  }
+
+  class Dog extends Animal {
+    override def breed: List[Dog] = ??? // List[Dog] !!
+  }
+
+  class Crocodile extends Dog {
+    override def breed: List[Crocodile] = ??? // List[Crocodile] !!
+  }
+*/
+
 }
