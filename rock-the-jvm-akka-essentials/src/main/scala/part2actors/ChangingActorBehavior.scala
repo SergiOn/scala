@@ -33,17 +33,35 @@ object ChangingActorBehavior extends App {
 
     override def receive: Receive = happyReceive
 
+//    def happyReceive: Receive = {
+//      case Food(VEGETABLE) => context.become(sadReceive) // change my receive handler to sadReceive
+//      case Food(CHOCOLATE) =>
+//      case Ask(_) => sender() ! KidAccept
+//    }
+//
+//    def sadReceive: Receive = {
+//      case Food(VEGETABLE) =>
+//      case Food(CHOCOLATE) => context.become(happyReceive) // change my receive handler to happyReceive
+//      case Ask(_) => sender() ! KidReject
+//    }
+
     def happyReceive: Receive = {
-      case Food(VEGETABLE) => context.become(sadReceive) // change my receive handler to sadReceive
+      case Food(VEGETABLE) => context.become(sadReceive, false) // change my receive handler to sadReceive
       case Food(CHOCOLATE) =>
       case Ask(_) => sender() ! KidAccept
     }
 
     def sadReceive: Receive = {
-      case Food(VEGETABLE) =>
-      case Food(CHOCOLATE) => context.become(happyReceive) // change my receive handler to happyReceive
+      case Food(VEGETABLE) => context.become(sadReceive, false)
+      case Food(CHOCOLATE) => context.unbecome()
       case Ask(_) => sender() ! KidReject
     }
+
+//    def sadReceive: Receive = {
+//      case Food(VEGETABLE) =>
+//      case Food(CHOCOLATE) => context.become(happyReceive, false) // change my receive handler to happyReceive
+//      case Ask(_) => sender() ! KidReject
+//    }
   }
 
   object Mom {
@@ -62,9 +80,9 @@ object ChangingActorBehavior extends App {
       case MomStart(kidRef) =>
         // test our interaction
         kidRef ! Food(VEGETABLE)
-//        kidRef ! Food(VEGETABLE)
-//        kidRef ! Food(CHOCOLATE)
-//        kidRef ! Food(CHOCOLATE)
+        kidRef ! Food(VEGETABLE)
+        kidRef ! Food(CHOCOLATE)
+        kidRef ! Food(CHOCOLATE)
         kidRef ! Ask("do you want to play?")
       case KidAccept => println("Yay, my kid is happy!")
       case KidReject => println("My kid is sad, but as he's healthy!")
@@ -84,6 +102,26 @@ object ChangingActorBehavior extends App {
       kid receives Food(veg) -> kid will change the handler to sadReceive
       kid receives Ask(play?) -> kid replies with the sadReceive handler =>
     mom receives KidReject
+   */
+
+  /*
+  context.become
+    Food(veg) -> stack.push(sadReceive)
+    Food(chocolate) -> stack.push(happyReceive)
+    Stack:
+    1. happyReceive
+    2. sadReceive
+    3. happyReceive
+   */
+
+  /*
+    new behavior
+    Food(veg)
+    Food(veg)
+    Food(choco)
+    Food(choco)
+    Stack:
+    1. happyReceive
    */
 
 }
