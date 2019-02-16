@@ -25,3 +25,12 @@ https://www.udemy.com/akka-essentials/
 ##### About this course
 
 Learn the Akka actor model with Scala and write parallel, concurrent and fault-tolerant systems with Akka supervision
+
+
+## Rock the JVM! Akka Persistence with Scala
+
+https://www.udemy.com/akka-persistence/
+
+##### About this course
+
+A must-have for Akka developers: write long-term reactive systems with Akka Persistence and PostgreSQL or Cassandra!
