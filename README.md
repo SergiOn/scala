@@ -34,3 +34,12 @@ https://www.udemy.com/akka-persistence/
 ##### About this course
 
 A must-have for Akka developers: write long-term reactive systems with Akka Persistence and PostgreSQL or Cassandra!
+
+
+## Rock the JVM! Akka Streams with Scala
+
+https://www.udemy.com/akka-streams/
+
+##### About this course
+
+A must-have for Scala & Akka developers: write large-scale, reactive distributed systems with Akka Streams
