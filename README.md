@@ -52,3 +52,12 @@ https://www.udemy.com/learning-path-microservices-with-java-scala-and-akka/
 ##### About this course
 
 Build smaller, lighter, and faster microservices for JVM languages
+
+
+## Learning Path: Akka: Building Applications and Microservices
+
+https://www.udemy.com/learning-path-akka-building-applications-and-microservices/
+
+##### About this course
+
+Embrace yourself to learn the art of creating applications and microservices with Akka
