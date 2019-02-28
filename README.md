@@ -43,3 +43,12 @@ https://www.udemy.com/akka-streams/
 ##### About this course
 
 A must-have for Scala & Akka developers: write large-scale, reactive distributed systems with Akka Streams
+
+
+## Learning Path: Microservices with Java, Scala, and Akka
+
+https://www.udemy.com/learning-path-microservices-with-java-scala-and-akka/
+
+##### About this course
+
+Build smaller, lighter, and faster microservices for JVM languages
