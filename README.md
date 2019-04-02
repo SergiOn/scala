@@ -70,3 +70,7 @@ https://www.udemy.com/akka-http/
 ##### About this course
 
 A must-have for Scala and Akka developers: write reactive microservices and REST APIs with Akka HTTP and Scala
+
+#### Links
+
+https://httpie.org/
