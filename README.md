@@ -61,3 +61,12 @@ https://www.udemy.com/learning-path-akka-building-applications-and-microservices
 ##### About this course
 
 Embrace yourself to learn the art of creating applications and microservices with Akka
+
+
+## Rock the JVM! Akka HTTP with Scala
+
+https://www.udemy.com/akka-http/
+
+##### About this course
+
+A must-have for Scala and Akka developers: write reactive microservices and REST APIs with Akka HTTP and Scala
