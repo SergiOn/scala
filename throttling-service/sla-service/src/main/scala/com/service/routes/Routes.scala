@@ -18,16 +18,16 @@ import scala.util.{Failure, Success}
 
 object Routes {
   def apply(context: ActorContext[Nothing], timeout: Timeout): Route =
-    new Routes(createMailActor(context))(context.system, timeout).routes
+    new Routes(createSlaActor(context))(context.system, timeout).routes
 
-  private def createMailActor(context: ActorContext[Nothing]): ActorRef[Command] = {
+  private def createSlaActor(context: ActorContext[Nothing]): ActorRef[Command] = {
     val actor = context.spawn(SlaActor(), SlaActor.name)
     context.watch(actor)
     actor
   }
 }
 
-class Routes(mailActor: ActorRef[Command])
+class Routes(slaActor: ActorRef[Command])
             (implicit val system: ActorSystem[_], implicit val requestTimeout: Timeout) extends ModelMarshalling {
 
   private val responseTimeInMillis = 250 - 15
@@ -71,6 +71,6 @@ class Routes(mailActor: ActorRef[Command])
     }
 
   private def getSla(token: String): Future[CommandStatus] =
-    mailActor.ask(GetSla(token, _: ActorRef[CommandStatus]))
+    slaActor.ask(GetSla(token, _: ActorRef[CommandStatus]))
 
 }
