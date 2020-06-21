@@ -41,6 +41,7 @@ class Routes(slaActor: ActorRef[Command])
 
         onComplete(getSla(token)) {
           case Success(GetSlaSuccess(sla)) =>
+            // Simulate latency
             val waitingTimeInMillis: Long = System.currentTimeMillis() - timeInMillis
             val timeToSleep = if (waitingTimeInMillis >= responseTimeInMillis) 0 else responseTimeInMillis - waitingTimeInMillis
             Thread.sleep(timeToSleep)
@@ -49,6 +50,7 @@ class Routes(slaActor: ActorRef[Command])
             complete(StatusCodes.OK, sla)
 
           case Success(GetSlaFailure(message)) =>
+            // Simulate latency
             val waitingTimeInMillis: Long = System.currentTimeMillis() - timeInMillis
             val timeToSleep = if (waitingTimeInMillis >= responseTimeInMillis) 0 else responseTimeInMillis - waitingTimeInMillis
             Thread.sleep(timeToSleep)
