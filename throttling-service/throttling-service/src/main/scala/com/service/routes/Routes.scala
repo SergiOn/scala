@@ -10,7 +10,7 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.util.Timeout
 import com.service.actors.{ProxyActor, SlaActor}
-import com.service.actors.users.{UnauthorizedUserActor, UserActorStatus}
+import com.service.actors.users.{AuthorizedUserActor, UnauthorizedUserActor, UserActorStatus}
 import com.service.models.Sla
 import com.service.models.marshalling.ModelMarshalling
 
@@ -22,6 +22,7 @@ object Routes {
   def apply(context: ActorContext[Nothing], timeout: Timeout): Route =
     new Routes(
       createSlaActor(context),
+      createAuthorizedUserActor(context, timeout),
       createUnauthorizedUserActor(context),
       createProxyActor(context)
     )(
@@ -31,6 +32,12 @@ object Routes {
 
   private def createSlaActor(context: ActorContext[Nothing]): ActorRef[SlaActor.Command] = {
     val actor = context.spawn(SlaActor(), SlaActor.name)
+    context.watch(actor)
+    actor
+  }
+
+  private def createAuthorizedUserActor(context: ActorContext[Nothing], timeout: Timeout): ActorRef[AuthorizedUserActor.Command] = {
+    val actor = context.spawn(AuthorizedUserActor(timeout), AuthorizedUserActor.name)
     context.watch(actor)
     actor
   }
@@ -50,6 +57,7 @@ object Routes {
 
 class Routes(
               slaActor: ActorRef[SlaActor.Command],
+              authorizedUserActor: ActorRef[AuthorizedUserActor.Command],
               unauthorizedUserActor: ActorRef[UnauthorizedUserActor.Command],
               proxyActor: ActorRef[ProxyActor.Command]
             )
@@ -92,7 +100,7 @@ success     failure
             system.log.info(s"AuthorizationHeader: $header")
             system.log.info(s"GetSlaSuccess: $sla")
             // Authorized User Flow
-            unauthorizedUserFlow()
+            authorizedUserFlow(sla)
           case SlaActor.GetSlaFailure(message) =>
             system.log.info(s"AuthorizationHeader: $header")
             system.log.info(s"GetSlaFailure: $message")
@@ -107,6 +115,13 @@ success     failure
       }
 
     val proxyResult: Future[(UserActorStatus, Any)] = userActorStatus.flatMap {
+      case authorized @ AuthorizedUserActor.BelowLimit(_) => doProxy(request)
+        .map {
+          case success @ ProxyActor.DoProxySuccess(_) => (authorized, success)
+          case failure @ ProxyActor.DoProxyFailure(_) => (authorized, failure)
+        }
+      case authorized @ AuthorizedUserActor.OverLimit => Future.successful(authorized, ())
+
       case unauthorized @ UnauthorizedUserActor.BelowLimit => doProxy(request)
         .map {
           case success @ ProxyActor.DoProxySuccess(_) => (unauthorized, success)
@@ -116,6 +131,22 @@ success     failure
     }
 
     onComplete(proxyResult) {
+
+      case Success((AuthorizedUserActor.BelowLimit(user), ProxyActor.DoProxySuccess(response))) =>
+        authorizedUserFlowComplete(user)
+        system.log.info(s"Success: $response")
+        complete(StatusCodes.OK, Unmarshal(response.entity).to[String])
+
+      case Success((AuthorizedUserActor.BelowLimit(user), ProxyActor.DoProxyFailure(exception))) =>
+        authorizedUserFlowComplete(user)
+        system.log.error(s"Failure: $exception")
+        complete(StatusCodes.BadRequest, exception.getMessage)
+
+      case Success((AuthorizedUserActor.OverLimit, _)) =>
+        system.log.error(s"Failure: OverLimit")
+        complete(StatusCodes.TooManyRequests)
+
+
       case Success((UnauthorizedUserActor.BelowLimit, ProxyActor.DoProxySuccess(response))) =>
         unauthorizedUserFlowComplete()
         system.log.info(s"Success: $response")
@@ -130,6 +161,7 @@ success     failure
         system.log.error(s"Failure: OverLimit")
         complete(StatusCodes.TooManyRequests)
 
+
       case Failure(e) =>
         system.log.error(s"Failure: ${e.getMessage}")
         complete(StatusCodes.TooManyRequests, e.getMessage)
@@ -141,9 +173,11 @@ success     failure
   private def getSla(authorizationHeader: String): Future[SlaActor.CommandStatus] =
     slaActor.ask(SlaActor.GetSla(authorizationHeader, _: ActorRef[SlaActor.CommandStatus]))
 
-  def authorizedUserFlow(sla: Sla): Future[Boolean] = {
-    Future.successful(true)
-  }
+  def authorizedUserFlow(sla: Sla): Future[UserActorStatus] =
+    authorizedUserActor.ask(AuthorizedUserActor.DefineRPS(sla, _: ActorRef[AuthorizedUserActor.CommandStatus]))
+
+  def authorizedUserFlowComplete(user: String): Unit =
+    authorizedUserActor.tell(AuthorizedUserActor.DefineRPSComplete(user))
 
   def unauthorizedUserFlow(): Future[UserActorStatus] =
     unauthorizedUserActor.ask(UnauthorizedUserActor.DefineRPS(_: ActorRef[UnauthorizedUserActor.CommandStatus]))

@@ -11,6 +11,10 @@ object SlaService {
 class SlaService {
 
   private val map: Map[String, Sla] = Map(
+    "0" -> Sla("User0", 0),
+    "1" -> Sla("User1", 1),
+    "2" -> Sla("User2", 2),
+    "3" -> Sla("User3", 3),
     "token" -> Sla("User", 2),
     "token-1" -> Sla("User-1", 5),
     "token-2" -> Sla("User-2", 10),

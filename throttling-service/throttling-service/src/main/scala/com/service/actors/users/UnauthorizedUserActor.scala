@@ -26,16 +26,16 @@ class UnauthorizedUserActor(context: ActorContext[Command], rpsInProgress: Int) 
   override def onMessage(message: Command): Behavior[Command] = message match {
     case DefineRPS(replyTo) =>
       if (rpsInProgress < graceRps) {
-        context.system.log.info("DefineRPS: BelowLimit")
+        context.system.log.info("UnauthorizedUserActor | DefineRPS: BelowLimit")
         replyTo ! BelowLimit
         next(rpsInProgress + 1)
       } else {
-        context.system.log.info("DefineRPS: OverLimit")
+        context.system.log.info("UnauthorizedUserActor | DefineRPS: OverLimit")
         replyTo ! OverLimit
         Behaviors.same
       }
     case DefineRPSComplete =>
-      context.system.log.info("DefineRPSComplete")
+      context.system.log.info("UnauthorizedUserActor | DefineRPSComplete")
       next(rpsInProgress - 1)
   }
 
