@@ -17,7 +17,7 @@ object Main {
   def main(args: Array[String]): Unit = {
 
     val rootBehavior: Behavior[Nothing] = Behaviors.setup[Nothing] { context =>
-      val routes: Route = Routes()
+      val routes: Route = Routes(context)
       startHttpServer(routes, context.system, host, port)
       Behaviors.empty
     }
