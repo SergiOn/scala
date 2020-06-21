@@ -10,3 +10,5 @@ Requests Per Second, RPS, or r/s is a scalability measure characterizing the thr
 
 #### About
 
+[Link to README.md](./throttling-service/README.md)
+
