@@ -1,4 +1,4 @@
-name := "throttling-service"
+name := "throttling-service-leaky-bucket"
 
 version := "0.1"
 
