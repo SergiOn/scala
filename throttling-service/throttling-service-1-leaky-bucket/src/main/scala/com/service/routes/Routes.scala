@@ -27,7 +27,7 @@ object Routes {
 
   def apply(context: ActorContext[Nothing], timeout: Timeout): Route =
     new Routes(
-      createSlaActor(context),
+      createSlaActor(context, timeout),
       createAuthorizedUserActor(context, timeout),
       createUnauthorizedUserActor(context),
       createProxyActor(context)
@@ -36,8 +36,8 @@ object Routes {
       timeout
     ).routes
 
-  private def createSlaActor(context: ActorContext[Nothing]): ActorRef[SlaActor.Command] = {
-    val actor = context.spawn(SlaActor(), SlaActor.name)
+  private def createSlaActor(context: ActorContext[Nothing], timeout: Timeout): ActorRef[SlaActor.Command] = {
+    val actor = context.spawn(SlaActor(timeout), SlaActor.name)
     context.watch(actor)
     actor
   }
@@ -104,19 +104,19 @@ success     failure
       .map(header => {
         getSla(header).flatMap {
           case SlaActor.GetSlaSuccess(sla) =>
-            system.log.info(s"AuthorizationHeader: $header")
-            system.log.info(s"GetSlaSuccess: $sla")
+            system.log.info("userActorStatus | AuthorizationHeader: {}", header)
+            system.log.info("userActorStatus | GetSlaSuccess: {}", sla)
             // Authorized User Flow
             authorizedUserFlow(sla)
           case SlaActor.GetSlaFailure(message) =>
-            system.log.info(s"AuthorizationHeader: $header")
-            system.log.info(s"GetSlaFailure: $message")
+            system.log.error("userActorStatus | AuthorizationHeader: {}", header)
+            system.log.error("userActorStatus | GetSlaFailure: {}", message)
             // Unauthorized User Flow
             unauthorizedUserFlow()
         }
       })
       .getOrElse {
-        system.log.info(s"AuthorizationHeader: missed")
+        system.log.info("AuthorizationHeader: missed")
         // Unauthorized User Flow
         unauthorizedUserFlow()
       }
@@ -124,53 +124,61 @@ success     failure
     val proxyResult: Future[(Status, Option[HttpResponse], Option[Throwable])] = userActorStatus.flatMap {
       case AuthorizedUserActor.BelowLimit(user) => doProxy(request)
         .map {
-          case ProxyActor.DoProxySuccess(response) => (AuthorizedBelowLimit(user), Some(response), None)
-          case ProxyActor.DoProxyFailure(exception) => (AuthorizedBelowLimit(user), None, Some(exception))
+          case ProxyActor.DoProxySuccess(response) =>
+            system.log.info("proxyResult | AuthorizedUserActor | DoProxySuccess")
+            (AuthorizedBelowLimit(user), Some(response), None)
+          case ProxyActor.DoProxyFailure(exception) =>
+            system.log.error("proxyResult | AuthorizedUserActor | DoProxyFailure")
+            (AuthorizedBelowLimit(user), None, Some(exception))
         }
       case AuthorizedUserActor.OverLimit => Future.successful((AuthorizedOverLimit, None, None))
 
       case UnauthorizedUserActor.BelowLimit => doProxy(request)
         .map {
-          case ProxyActor.DoProxySuccess(response) => (UnauthorizedBelowLimit, Some(response), None)
-          case ProxyActor.DoProxyFailure(exception) => (UnauthorizedBelowLimit, None, Some(exception))
+          case ProxyActor.DoProxySuccess(response) =>
+            system.log.info("proxyResult | UnauthorizedUserActor | DoProxySuccess")
+            (UnauthorizedBelowLimit, Some(response), None)
+          case ProxyActor.DoProxyFailure(exception) =>
+            system.log.error("proxyResult | UnauthorizedUserActor | DoProxyFailure")
+            (UnauthorizedBelowLimit, None, Some(exception))
         }
-      case unauthorized @ UnauthorizedUserActor.OverLimit => Future.successful((UnauthorizedOverLimit, None, None))
+      case UnauthorizedUserActor.OverLimit => Future.successful((UnauthorizedOverLimit, None, None))
     }
 
     onComplete(proxyResult) {
 
       case Success((AuthorizedBelowLimit(user), Some(response), None)) =>
         authorizedUserFlowComplete(user)
-        system.log.info(s"Success: $response")
+        system.log.info("onComplete | AuthorizedBelowLimit | Success: {}", response)
         complete(StatusCodes.OK, Unmarshal(response.entity).to[String])
 
       case Success((AuthorizedBelowLimit(user), None, Some(exception))) =>
         authorizedUserFlowComplete(user)
-        system.log.error(s"Failure: $exception")
+        system.log.error("onComplete | AuthorizedBelowLimit | Failure: {}", exception)
         complete(StatusCodes.BadRequest, exception.getMessage)
 
       case Success((AuthorizedOverLimit, None, None)) =>
-        system.log.error(s"Failure: OverLimit")
+        system.log.error("onComplete | AuthorizedOverLimit | Success: TooManyRequests")
         complete(StatusCodes.TooManyRequests)
 
 
       case Success((UnauthorizedBelowLimit, Some(response), None)) =>
         unauthorizedUserFlowComplete()
-        system.log.info(s"Success: $response")
+        system.log.info("onComplete | UnauthorizedBelowLimit | Success: {}", response)
         complete(StatusCodes.OK, Unmarshal(response.entity).to[String])
 
       case Success((UnauthorizedBelowLimit, None, Some(exception))) =>
         unauthorizedUserFlowComplete()
-        system.log.error(s"Failure: $exception")
+        system.log.error("onComplete | UnauthorizedBelowLimit | Failure: {}", exception)
         complete(StatusCodes.BadRequest, exception.getMessage)
 
       case Success((UnauthorizedOverLimit, None, None)) =>
-        system.log.error(s"Failure: OverLimit")
+        system.log.error("onComplete | UnauthorizedOverLimit | Success: TooManyRequests")
         complete(StatusCodes.TooManyRequests)
 
 
       case Failure(e) =>
-        system.log.error(s"Failure: ${e.getMessage}")
+        system.log.error("Failure: {}", e.getMessage)
         complete(StatusCodes.TooManyRequests, e.getMessage)
     }
 

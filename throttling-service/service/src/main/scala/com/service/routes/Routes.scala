@@ -26,7 +26,8 @@ class Routes(context: ActorContext[Nothing]) extends ModelMarshalling {
       |Request protocol is: ${request.protocol}
       |""".stripMargin
 
-    Thread.sleep(8.seconds.toMillis)
+//    Thread.sleep(8.seconds.toMillis)
+    Thread.sleep(5.milliseconds.toMillis)
 
     context.system.log.info(response)
     complete(response)

@@ -30,8 +30,12 @@ class ProxyActor(context: ActorContext[Command]) extends AbstractBehavior[Comman
   override def onMessage(message: Command): Behavior[Command] = message match {
     case DoProxy(request, replyTo) =>
       doProxy(request).onComplete {
-        case Success(response) => replyTo ! DoProxySuccess(response)
-        case Failure(exception) => replyTo ! DoProxyFailure(exception)
+        case Success(response) =>
+          context.system.log.info("ProxyActor | Success: {}", response)
+          replyTo ! DoProxySuccess(response)
+        case Failure(exception) =>
+          context.system.log.error("ProxyActor | Failure: {}", exception)
+          replyTo ! DoProxyFailure(exception)
       }
       Behaviors.same
   }

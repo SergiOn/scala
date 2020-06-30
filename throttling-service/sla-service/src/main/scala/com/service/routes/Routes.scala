@@ -46,7 +46,7 @@ class Routes(slaActor: ActorRef[Command])
             val timeToSleep = if (waitingTimeInMillis >= responseTimeInMillis) 0 else responseTimeInMillis - waitingTimeInMillis
             Thread.sleep(timeToSleep)
 
-            system.log.info(s"Success: ${token}")
+            system.log.info("Success: {}", token)
             complete(StatusCodes.OK, sla)
 
           case Success(GetSlaFailure(message)) =>
@@ -55,11 +55,11 @@ class Routes(slaActor: ActorRef[Command])
             val timeToSleep = if (waitingTimeInMillis >= responseTimeInMillis) 0 else responseTimeInMillis - waitingTimeInMillis
             Thread.sleep(timeToSleep)
 
-            system.log.error(s"Failure: ${message}")
+            system.log.error("Failure: {}", message)
             complete(StatusCodes.Unauthorized, message)
 
           case Failure(e) =>
-            system.log.error(s"Failure: ${e.getMessage}")
+            system.log.error("Failure: {}", e.getMessage)
             complete(StatusCodes.InternalServerError, e.getMessage)
         }
       }

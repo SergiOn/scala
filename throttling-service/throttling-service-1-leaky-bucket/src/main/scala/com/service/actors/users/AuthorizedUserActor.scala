@@ -30,24 +30,27 @@ class AuthorizedUserActor(context: ActorContext[Command])(implicit val requestTi
 
   override def onMessage(message: Command): Behavior[Command] = message match {
     case DefineRPS(sla, replyTo) =>
-      context.system.log.info("AuthorizedUserActor | DefineRPS: BelowLimit")
-      val actor: ActorRef[AuthorizedGenericUserActor.Command] = getActor(sla.user)
+      val actor: ActorRef[AuthorizedGenericUserActor.Command] = getAuthorizedGenericUserActor(sla.user)
 
       actor
         .ask(AuthorizedGenericUserActor.DefineRPS(sla.rps, _: ActorRef[AuthorizedGenericUserActor.CommandStatus]))
         .onComplete {
-          case Success(AuthorizedGenericUserActor.BelowLimit) => replyTo ! AuthorizedUserActor.BelowLimit(sla.user)
-          case Success(AuthorizedGenericUserActor.OverLimit) => replyTo ! AuthorizedUserActor.OverLimit
+          case Success(AuthorizedGenericUserActor.BelowLimit) =>
+            context.system.log.info("AuthorizedUserActor | BelowLimit")
+            replyTo ! AuthorizedUserActor.BelowLimit(sla.user)
+          case Success(AuthorizedGenericUserActor.OverLimit) =>
+            context.system.log.info("AuthorizedUserActor | OverLimit")
+            replyTo ! AuthorizedUserActor.OverLimit
         }
       Behaviors.same
     case DefineRPSComplete(user) =>
       context.system.log.info("AuthorizedUserActor | DefineRPSComplete")
-      val actor: ActorRef[AuthorizedGenericUserActor.Command] = getActor(user)
+      val actor: ActorRef[AuthorizedGenericUserActor.Command] = getAuthorizedGenericUserActor(user)
       actor ! AuthorizedGenericUserActor.DefineRPSComplete
       Behaviors.same
   }
 
-  private def getActor(user: String): ActorRef[AuthorizedGenericUserActor.Command] = {
+  private def getAuthorizedGenericUserActor(user: String): ActorRef[AuthorizedGenericUserActor.Command] = {
     context
       .child(AuthorizedGenericUserActor.name(user))
       .asInstanceOf[Option[ActorRef[AuthorizedGenericUserActor.Command]]]
