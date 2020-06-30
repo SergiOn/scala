@@ -53,6 +53,9 @@ The service responsible for giving a "Sla" (user, prs) and it depends on Bearer 
 
 It keeps connections between token and users.
 
+Please, take a look on predefined users:
+[sla-service/src/main/scala/com/service/services/SlaService.scala](./sla-service/src/main/scala/com/service/services/SlaService.scala)
+
 ### Service
 
 The service which responsible for data.
